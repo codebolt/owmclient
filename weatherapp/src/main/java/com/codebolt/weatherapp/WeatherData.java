@@ -1,5 +1,10 @@
 package com.codebolt.weatherapp;
 
+/**
+ * POJO class for storing data about the weather for a given city.
+ * @author Rune
+ *
+ */
 public class WeatherData {
 	private String city ;
 	private String country ;

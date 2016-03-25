@@ -1,13 +1,16 @@
 package com.codebolt.weatherapp;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.ParseContext;
 import com.jayway.jsonpath.ReadContext;
 
+/**
+ * This class provides functionality for parsing the JSON returned from OpenWeatherMap into a WeatherData object. 
+ * @author Rune
+ *
+ */
 public class WeatherDataParser {
 	private final ParseContext parseContext ;
 	
@@ -17,27 +20,34 @@ public class WeatherDataParser {
 		this.parseContext = JsonPath.using(config) ;
 	}
 	
+	/**
+	 * Reads out the given path from the provided document read context, and converts it to a Double. 
+	 * If the object could not be converted to a Double, null is returned.
+	 */
 	static private Double readDouble(final ReadContext doc, final String path) {
 		final Object obj = doc.read(path) ;
 		try {
-			return obj == null ? null : new Double(obj.toString()) ;
+			if (obj == null) return null ;
+			else if (obj instanceof Double) return (Double) obj ;
+			else return new Double(obj.toString()) ;
 		} catch(Exception e) {
-			System.out.println("Warning: Unable to parse element '" + path + "' value '" + obj + "' as decimal: " + e.toString());
+			System.err.println("Warning: Unable to parse element '" + path + "' value '" + obj + "' as decimal: " + e.toString());
 			return null ;
 		}
 	}
-	
-	static private String readString(final ReadContext doc, final String path) {
-		return StringUtils.trimToEmpty(doc.read(path)) ;
-	}
 
+	/**
+	 * Parses a JSON string returned from the OpenWeatherMap web service into a WeatherData instance, using JSONPath.
+	 * @param json
+	 * @return
+	 */
 	public WeatherData parse(String json) {
 		final ReadContext doc = parseContext.parse(json) ;
 		final WeatherData data = new WeatherData() ;
-		data.setCity(readString(doc,"$.name"));
-		data.setCountry(readString(doc,"$.sys.country"));
-		data.setTitle(readString(doc,"$.weather[0].main"));
-		data.setDescription(readString(doc,"$.weather[0].description"));
+		data.setCity(doc.read("$.name"));
+		data.setCountry(doc.read("$.sys.country"));
+		data.setTitle(doc.read("$.weather[0].main"));
+		data.setDescription(doc.read("$.weather[0].description"));
 		data.setTemperature(readDouble(doc,"$.main.temp"));
 		data.setPressure(readDouble(doc,"$.main.pressure"));
 		data.setHumidity(readDouble(doc,"$.main.humidity"));
